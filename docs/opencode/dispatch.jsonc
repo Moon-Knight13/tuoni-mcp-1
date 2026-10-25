@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Four initial tools. Find and load operation schemas as needed.
+  "instructions": ["{env:TUONI_MCP_REPO}/.agents/skills/operate-tuoni/SKILL.md"],
+  "permission": {
+    "tuoni_*": "allow",
+    "tuoni_tuoni_operation_execute": "ask"
+  },
+  "mcp": {
+    "tuoni": {
+      "type": "local",
+      "command": [
+        "uv", "--directory", "{env:TUONI_MCP_REPO}",
+        "run", "--frozen", "--no-dev", "tuoni-mcp", "--transport", "stdio"
+      ],
+      "environment": {
+        "TUONI_URL": "{env:TUONI_URL}",
+        "TUONI_USERNAME": "{env:TUONI_USERNAME}",
+        "TUONI_PASSWORD": "{env:TUONI_PASSWORD}",
+        "TUONI_VERIFY_TLS": "{env:TUONI_VERIFY_TLS}",
+        "TUONI_MCP_PROFILES": "agent-ops,discovery",
+        "TUONI_MCP_MODE": "dispatch",
+        "TUONI_MCP_READ_ONLY": "false",
+        "TUONI_MCP_TOOL_PREFIX": "tuoni_"
+      },
+      "enabled": true,
+      "timeout": 120000
+    }
+  }
+}

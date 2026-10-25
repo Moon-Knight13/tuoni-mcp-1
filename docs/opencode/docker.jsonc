@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Linux Docker Engine; first build the tuoni-mcp:local image as described in README.md.
+  "instructions": ["{env:TUONI_MCP_REPO}/.agents/skills/operate-tuoni/SKILL.md"],
+  "permission": {
+    "tuoni_*": "allow",
+    "tuoni_tuoni_operation_execute": "ask"
+  },
+  "mcp": {
+    "tuoni": {
+      "type": "local",
+      "command": [
+        "docker", "run", "--pull=never", "-i", "--rm", "--network", "host",
+        "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+        "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m",
+        "-e", "TUONI_URL", "-e", "TUONI_USERNAME", "-e", "TUONI_PASSWORD",
+        "-e", "TUONI_VERIFY_TLS",
+        "-e", "TUONI_MCP_PROFILES=agent-ops",
+        "-e", "TUONI_MCP_MODE=native",
+        "-e", "TUONI_MCP_READ_ONLY=false",
+        "-e", "TUONI_MCP_TOOL_PREFIX=tuoni_",
+        "tuoni-mcp:local", "--transport", "stdio"
+      ],
+      "environment": {
+        "TUONI_URL": "{env:TUONI_URL}",
+        "TUONI_USERNAME": "{env:TUONI_USERNAME}",
+        "TUONI_PASSWORD": "{env:TUONI_PASSWORD}",
+        "TUONI_VERIFY_TLS": "{env:TUONI_VERIFY_TLS}"
+      },
+      "enabled": true,
+      "timeout": 120000
+    }
+  }
+}

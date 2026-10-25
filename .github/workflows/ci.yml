@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: ubuntu-latest
+            python: "3.14"
+          - os: windows-latest
+            python: "3.12"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out tuoni-mcp
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.13.4"
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install ${{ matrix.python }}
+
+      - name: Verify lockfile
+        run: uv lock --check
+
+      - name: Sync frozen development environment
+        run: uv sync --frozen --all-extras --python ${{ matrix.python }}
+
+      - name: Lint
+        run: uv run --frozen --all-extras ruff check src tests evaluation scripts
+
+      - name: Verify generated tool reference
+        run: uv run --frozen --all-extras python scripts/generate_tool_reference.py --check
+
+      - name: Test
+        run: uv run --frozen --all-extras pytest -q
+
+      # The pytest run already gates this against evaluation/portable/baseline.json.
+      # Running it again standalone publishes the numbers in the job log, so a
+      # reviewer can see completion, hops and bytes without opening a test report.
+      - name: Portable evaluation
+        run: uv run --frozen --all-extras python evaluation/run_portable_eval.py
+
+      - name: Audit locked runtime dependencies
+        shell: bash
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes --no-annotate --no-header --output-file runtime-requirements.txt
+          # The export includes all pinned transitive dependencies; audit it without bootstrapping pip.
+          uvx --python ${{ matrix.python }} pip-audit==2.10.1 --no-deps --disable-pip --strict -r runtime-requirements.txt
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.13.4"
+      - name: Build wheel and source distribution
+        run: uv build
+      - name: Validate package metadata
+        run: uvx twine check dist/*
+      - name: Check distribution contents
+        run: uv run --frozen --all-extras python scripts/check_dist.py dist
+      - name: Verify wheel installs outside the checkout
+        run: |
+          uv venv /tmp/tuoni-wheel --python 3.12
+          uv pip install --python /tmp/tuoni-wheel/bin/python dist/*.whl
+          uv run --frozen --all-extras python scripts/smoke_install.py --executable /tmp/tuoni-wheel/bin/tuoni-mcp
+      - name: Audit dependencies resolved by a fresh wheel installation
+        run: |
+          uv pip freeze --python /tmp/tuoni-wheel/bin/python --exclude tuoni-mcp > wheel-requirements.txt
+          uvx pip-audit==2.10.1 --no-deps --disable-pip --strict -r wheel-requirements.txt
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.13.4"
+
+      - name: Build frozen production image
+        run: docker build --target production -f scripts/docker/Dockerfile -t tuoni-mcp:ci .
+
+      - name: Build frozen test image
+        run: docker build --target test -f scripts/docker/Dockerfile -t tuoni-mcp:test .
+
+      - name: Run frozen test image
+        run: docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,nosuid,nodev,size=64m tuoni-mcp:test
+      - name: Verify production stdio transport
+        run: uv run --frozen --all-extras python scripts/smoke_install.py --docker-image tuoni-mcp:ci
+      - name: Audit production image
+        run: bash scripts/audit_image.sh tuoni-mcp:ci image-audit.json
+      - name: Retain full image vulnerability report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tuoni-mcp-image-audit
+          path: |
+            image-audit.json
+            image-audit-acceptance.json
+          if-no-files-found: ignore

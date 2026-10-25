@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "tuoni": {
+      "command": "/Users/YOU/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/YOU/src/tuoni-mcp",
+        "run",
+        "--frozen",
+        "--no-dev",
+        "--env-file",
+        "/Users/YOU/.config/tuoni-mcp/tuoni.env",
+        "tuoni-mcp",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "TUONI_MCP_PROFILES": "agent-ops",
+        "TUONI_MCP_MODE": "native",
+        "TUONI_MCP_READ_ONLY": "false",
+        "TUONI_MCP_TOOL_PREFIX": ""
+      }
+    }
+  }
+}

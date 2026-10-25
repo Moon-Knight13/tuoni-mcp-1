@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "base_image": "python:3.12-slim@sha256:cb33f7f771ecec2ef1225cf39b159591a040391bd73e4c01f00fdfc4c47611d2",
+  "review_before": "2026-11-22",
+  "deployment": "Trusted local stdio, UID/GID 10001, read-only root filesystem, --cap-drop ALL, --security-opt no-new-privileges. No privileged operator executes utilities inside the running container. Added packages, root/privileged containers, and remote HTTP require a new assessment.",
+  "assessments": {
+    "CVE-2026-76642": {
+      "packages": ["bsdutils", "libblkid1", "liblastlog2-2", "libmount1", "libsmartcols1", "libuuid1", "login", "mount", "util-linux"],
+      "versions": ["2.41.5-0+deb13u1", "1:2.41.5-0+deb13u1", "1:4.16.0-2+really2.41.5-0+deb13u1"],
+      "conditions": ["non_root", "no_capabilities", "no_new_privileges", "no_setid_files"],
+      "reason": "The mount post-hook privilege escalation requires a privileged mount operation. The service has no mount capability, no setuid utilities, and cannot acquire new privileges.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-76642"
+    },
+    "CVE-2026-78408": {
+      "packages": ["bsdutils", "libblkid1", "liblastlog2-2", "libmount1", "libsmartcols1", "libuuid1", "login", "mount", "util-linux"],
+      "versions": ["2.41.5-0+deb13u1", "1:2.41.5-0+deb13u1", "1:4.16.0-2+really2.41.5-0+deb13u1"],
+      "conditions": ["non_root", "no_capabilities", "no_new_privileges", "no_setid_files"],
+      "reason": "The cgroup descriptor leak requires an operator to run nsenter --join-cgroup as root. The non-root MCP process does not invoke nsenter, and privileged operator execution is outside this deployment.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-78408"
+    },
+    "CVE-2026-78409": {
+      "packages": ["bsdutils", "libblkid1", "liblastlog2-2", "libmount1", "libsmartcols1", "libuuid1", "login", "mount", "util-linux"],
+      "versions": ["2.41.5-0+deb13u1", "1:2.41.5-0+deb13u1", "1:4.16.0-2+really2.41.5-0+deb13u1"],
+      "conditions": ["non_root", "no_capabilities", "no_new_privileges", "no_setid_files"],
+      "reason": "The detached mount-tree traversal needs a privileged mount operation. The container has no mount capability, no setuid mount utility, and cannot gain either.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-78409"
+    },
+    "CVE-2026-78410": {
+      "packages": ["bsdutils", "libblkid1", "liblastlog2-2", "libmount1", "libsmartcols1", "libuuid1", "login", "mount", "util-linux"],
+      "versions": ["2.41.5-0+deb13u1", "1:2.41.5-0+deb13u1", "1:4.16.0-2+really2.41.5-0+deb13u1"],
+      "conditions": ["non_root", "no_capabilities", "no_new_privileges", "no_setid_files"],
+      "reason": "The bind-mount ownership attack requires setuid/root mount execution. The image strips setuid bits and the deployment removes capabilities and privilege acquisition.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-78410"
+    },
+    "CVE-2026-54369": {
+      "packages": ["libacl1"],
+      "versions": ["2.3.2-2+b1"],
+      "conditions": ["non_root", "no_capabilities", "no_new_privileges", "no_setid_files"],
+      "reason": "The pathname ACL attack requires a privileged caller. The service has no elevated identity or capabilities and does not call libacl pathname functions.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-54369"
+    },
+    "CVE-2025-69720": {
+      "packages": ["libncursesw6", "libtinfo6", "ncurses-base", "ncurses-bin"],
+      "versions": ["6.5+20250216-2"],
+      "conditions": ["no_infocmp"],
+      "reason": "The vulnerable code is in the infocmp executable, which the image removes explicitly. Debian-essential ncurses-bin and its libraries/data remain installed; the probe verifies the affected executable is absent.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2025-69720"
+    },
+    "CVE-2026-16742": {
+      "packages": ["libsystemd0", "libudev1"],
+      "versions": ["257.13-1~deb13u1"],
+      "conditions": ["no_homed"],
+      "reason": "Only the source package's shared libraries are installed. The vulnerable systemd-homed service is absent; no homed-managed users or daemon exist in this image.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-16742"
+    },
+    "CVE-2026-9538": {
+      "packages": ["perl-base"],
+      "versions": ["5.40.1-6+deb13u1"],
+      "conditions": ["no_archive_tar"],
+      "reason": "perl-base does not include the affected Archive::Tar module. The runtime probe verifies that module is absent.",
+      "reference": "https://security-tracker.debian.org/tracker/CVE-2026-9538"
+    }
+  }
+}

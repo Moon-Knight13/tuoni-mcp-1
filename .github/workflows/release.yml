@@ -1,0 +1,79 @@
+name: Release artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact version in pyproject.toml and CHANGELOG.md
+        required: true
+        default: "0.0.1"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.13.4"
+      - name: Verify lockfile matches release metadata
+        run: uv lock --check
+      - run: uv sync --frozen --all-extras
+      - name: Verify release version and commit
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          uv run --frozen --all-extras python scripts/check_release.py \
+            --version "$RELEASE_VERSION" --commit "$GITHUB_SHA" > release-check.json
+      - run: uv run --frozen --all-extras ruff check src tests evaluation scripts
+      - name: Verify generated tool reference
+        run: uv run --frozen --all-extras python scripts/generate_tool_reference.py --check
+      - run: uv run --frozen --all-extras pytest -q
+      - name: Audit runtime dependencies
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes --no-annotate --no-header --output-file runtime-requirements.txt
+          # The export includes all pinned transitive dependencies; audit it without bootstrapping pip.
+          uvx pip-audit==2.10.1 --no-deps --disable-pip --strict -r runtime-requirements.txt
+      - run: uv run --frozen --all-extras python evaluation/run_portable_eval.py --out portable-evaluation.json
+      - run: uv build
+      - run: uvx twine check dist/*
+      - run: uv run --frozen --all-extras python scripts/check_dist.py dist
+      - name: Verify installed wheel through MCP
+        run: |
+          uv venv /tmp/tuoni-release-wheel --python 3.12
+          uv pip install --python /tmp/tuoni-release-wheel/bin/python dist/*.whl
+          uv run --frozen --all-extras python scripts/smoke_install.py --executable /tmp/tuoni-release-wheel/bin/tuoni-mcp > wheel-smoke.json
+      - name: Audit dependencies resolved by a fresh wheel installation
+        run: |
+          uv pip freeze --python /tmp/tuoni-release-wheel/bin/python --exclude tuoni-mcp > wheel-requirements.txt
+          uvx pip-audit==2.10.1 --no-deps --disable-pip --strict -r wheel-requirements.txt
+      - name: Build and audit production container
+        run: |
+          docker build --target production -f scripts/docker/Dockerfile -t tuoni-mcp:release .
+          uv run --frozen --all-extras python scripts/smoke_install.py --docker-image tuoni-mcp:release > container-smoke.json
+          bash scripts/audit_image.sh tuoni-mcp:release image-audit.json
+      - name: Retain full image vulnerability report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tuoni-mcp-image-audit-${{ github.sha }}
+          path: |
+            image-audit.json
+            image-audit-acceptance.json
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tuoni-mcp-${{ inputs.version }}-${{ github.sha }}
+          path: |
+            dist/*
+            portable-evaluation.json
+            release-check.json
+            runtime-requirements.txt
+            wheel-requirements.txt
+            image-audit.json
+            image-audit-acceptance.json
+            wheel-smoke.json
+            container-smoke.json

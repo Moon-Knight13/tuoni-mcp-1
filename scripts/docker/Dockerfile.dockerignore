@@ -1,0 +1,32 @@
+# The build context is this standalone repository. Keep local secrets out of
+# the Docker daemon and build cache by allowing only required inputs.
+**
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!src/
+!src/**
+!tests/
+!tests/**
+!docs/
+!docs/**
+!evaluation/
+!evaluation/**
+!.agents/
+!.agents/**
+!.github/
+!.github/**
+!scripts/
+!scripts/check_release.py
+!scripts/check_dist.py
+!scripts/check_image.py
+!scripts/image_risks.json
+!scripts/docker/
+!scripts/docker/Dockerfile
+!scripts/docker/Dockerfile.dockerignore
+!scripts/env/
+!scripts/env/default.env
+!scripts/env/override.env.example
+**/__pycache__/
+**/*.pyc

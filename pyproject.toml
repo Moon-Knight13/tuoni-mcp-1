@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tuoni-mcp"
+version = "0.0.1"
+description = "MCP server for the Tuoni C2 framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Tuoni" }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "certifi>=2026.10.19",
+    "mcp>=1.30,<2",
+    "tuoni>=0.17.0,<0.18",
+    "websocket-client>=1.7",
+    "websockets>=16.1.1,<17",
+    "anyio>=4.0",
+    "jsonschema>=4.18,<5",
+    "referencing>=0.30,<1",
+    "pydantic>=2.0",
+    "requests>=2.34.2,<3",
+    "urllib3>=2.8,<3",
+]
+
+[project.urls]
+Source = "https://github.com/shell-dot/tuoni-mcp"
+Issues = "https://github.com/shell-dot/tuoni-mcp/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "httpx>=0.28,<1",
+    "tomli>=2; python_version < '3.11'",
+]
+
+[project.scripts]
+tuoni-mcp = "tuoni_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tuoni_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src", "/tests", "/evaluation", "/scripts", "/docs", "/.agents", "/.github",
+    "/pyproject.toml", "/uv.lock", "/README.md", "/CHANGELOG.md", "/CONTRIBUTING.md",
+    "/LICENSE", "/SECURITY.md", "/Makefile", "/.gitignore",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# The portable evaluation harness lives beside the tests rather than in the
+# shipped package, so it must be importable as `evaluation.portable`.
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

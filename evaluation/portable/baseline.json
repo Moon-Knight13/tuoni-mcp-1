@@ -1,0 +1,36 @@
+{
+  "modes": {
+    "dispatch": {
+      "catalog_bytes": 2057,
+      "catalog_tools": 4,
+      "completed_workflows": 20,
+      "context_overflows": 0,
+      "incomplete_workflows": [],
+      "instructions_bytes": 1128,
+      "max_result_bytes": 5566,
+      "mean_tool_calls_per_workflow": 2.1,
+      "request_bytes": 5993,
+      "result_bytes": 53850,
+      "tool_calls": 42,
+      "unintended_mutations": 0,
+      "upstream_reads": 35,
+      "valid_tool_call_rate": 1.0
+    },
+    "native": {
+      "catalog_bytes": 11235,
+      "catalog_tools": 11,
+      "completed_workflows": 20,
+      "context_overflows": 0,
+      "incomplete_workflows": [],
+      "instructions_bytes": 983,
+      "max_result_bytes": 5526,
+      "mean_tool_calls_per_workflow": 2.1,
+      "request_bytes": 4667,
+      "result_bytes": 52730,
+      "tool_calls": 42,
+      "unintended_mutations": 0,
+      "upstream_reads": 35,
+      "valid_tool_call_rate": 1.0
+    }
+  }
+}

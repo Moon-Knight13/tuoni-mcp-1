@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "tuoni": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "--directory", "${TUONI_MCP_REPO:-}",
+        "run", "--frozen", "--no-dev", "tuoni-mcp", "--transport", "stdio"
+      ],
+      "env": {
+        "TUONI_URL": "${TUONI_URL:-}",
+        "TUONI_USERNAME": "${TUONI_USERNAME:-}",
+        "TUONI_PASSWORD": "${TUONI_PASSWORD:-}",
+        "TUONI_VERIFY_TLS": "${TUONI_VERIFY_TLS:-true}",
+        "TUONI_MCP_PROFILES": "agent-ops,discovery",
+        "TUONI_MCP_MODE": "dispatch",
+        "TUONI_MCP_READ_ONLY": "false",
+        "TUONI_MCP_TOOL_PREFIX": "mcp__tuoni__"
+      },
+      "timeout": 120000
+    }
+  }
+}

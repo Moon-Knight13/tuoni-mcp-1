@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Seven observation tools; the server removes preparation and mutation tools.
+  "instructions": ["{env:TUONI_MCP_REPO}/.agents/skills/operate-tuoni/SKILL.md"],
+  "permission": {"tuoni_*": "allow"},
+  "mcp": {
+    "tuoni": {
+      "type": "local",
+      "command": [
+        "uv", "--directory", "{env:TUONI_MCP_REPO}",
+        "run", "--frozen", "--no-dev", "tuoni-mcp", "--transport", "stdio"
+      ],
+      "environment": {
+        "TUONI_URL": "{env:TUONI_URL}",
+        "TUONI_USERNAME": "{env:TUONI_USERNAME}",
+        "TUONI_PASSWORD": "{env:TUONI_PASSWORD}",
+        "TUONI_VERIFY_TLS": "{env:TUONI_VERIFY_TLS}",
+        "TUONI_MCP_PROFILES": "agent-ops",
+        "TUONI_MCP_MODE": "native",
+        "TUONI_MCP_READ_ONLY": "true",
+        "TUONI_MCP_TOOL_PREFIX": "tuoni_"
+      },
+      "enabled": true,
+      "timeout": 120000
+    }
+  }
+}

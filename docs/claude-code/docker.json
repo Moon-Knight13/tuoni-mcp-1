@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "tuoni": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--pull=never", "-i", "--rm", "--network", "host",
+        "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+        "--tmpfs", "/tmp:rw,nosuid,nodev,size=64m",
+        "-e", "TUONI_URL", "-e", "TUONI_USERNAME", "-e", "TUONI_PASSWORD",
+        "-e", "TUONI_VERIFY_TLS",
+        "-e", "TUONI_MCP_PROFILES=agent-ops",
+        "-e", "TUONI_MCP_MODE=native",
+        "-e", "TUONI_MCP_READ_ONLY=false",
+        "-e", "TUONI_MCP_TOOL_PREFIX=mcp__tuoni__",
+        "tuoni-mcp:local", "--transport", "stdio"
+      ],
+      "env": {
+        "TUONI_URL": "${TUONI_URL:-}",
+        "TUONI_USERNAME": "${TUONI_USERNAME:-}",
+        "TUONI_PASSWORD": "${TUONI_PASSWORD:-}",
+        "TUONI_VERIFY_TLS": "${TUONI_VERIFY_TLS:-true}"
+      },
+      "timeout": 120000
+    }
+  }
+}

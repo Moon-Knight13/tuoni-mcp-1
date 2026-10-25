@@ -1,0 +1,4 @@
+interface:
+  display_name: "Operate Tuoni"
+  short_description: "Drive a live Tuoni C2: agents, listeners, payloads, commands"
+  default_prompt: "Use $operate-tuoni to operate a live Tuoni C2 server: list agents, create listeners or payloads, run commands, and collect results."
